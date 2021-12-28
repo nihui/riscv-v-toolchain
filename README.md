@@ -20,15 +20,18 @@ git submodule update --init --recursive --depth 1 riscv-gdb
 # upgrade the riscv-gcc folder manually
 rm -rf riscv-gcc
 git clone -b riscv-gcc-10.1-rvv-dev --single-branch --depth=1 https://github.com/riscv-collab/riscv-gcc.git
-cd riscv-gcc
+
+# revert vfredsum -> vfredusum changes for compatibility atm
+pushd riscv-gcc
 wget https://github.com/riscv-collab/riscv-gcc/commit/227d14bbdbcef65cc3f8ea96e6e3fb905d32368f.patch
 patch -p1 -R -i 227d14bbdbcef65cc3f8ea96e6e3fb905d32368f.patch
+popd
 
 # fix compile error
 sed -i '/__OBSOLETE_MATH/d' riscv-newlib/newlib/libm/common/math_errf.c
 
+# build toolchain, you need at least 20GB free memory for 4 parallel jobs
 ./configure --prefix=`pwd`/rv64gcv-install --with-arch=rv64gcv_zfh
-
 make linux -j 4
 
 # strip debug symbols
